@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoodList</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ── ONBOARDING MODAL ───────────────────────────────────────────── -->
+  <div id="onboarding-overlay" class="hidden">
+    <div class="onboarding-modal">
+      <div class="onboarding-step" id="step-1">
+        <div class="step-icon">💚</div>
+        <h2>Welcome to GoodList</h2>
+        <p>Every new tab you open raises money for a cause you love. Let's get you set up.</p>
+        <p class="step-label">Step 1 of 4 — Choose your charity</p>
+        <div class="charity-grid">
+          <button class="charity-btn" data-charity="St. Jude Children's Hospital">🏥 St. Jude</button>
+          <button class="charity-btn" data-charity="ASPCA">🐾 ASPCA</button>
+          <button class="charity-btn" data-charity="Red Cross">🩸 Red Cross</button>
+          <button class="charity-btn" data-charity="WWF">🌿 WWF</button>
+          <button class="charity-btn" data-charity="Feeding America">🍽️ Feeding America</button>
+          <button class="charity-btn" data-charity="UNICEF">👶 UNICEF</button>
+        </div>
+      </div>
+
+      <div class="onboarding-step hidden" id="step-2">
+        <div class="step-icon">🛒</div>
+        <h2>Save your first item</h2>
+        <p>On any shopping site, <strong>right-click a product</strong> and select <em>"Add to GoodList"</em> to save it here.</p>
+        <p class="step-label">Step 2 of 4 — Right-click any product now, or skip</p>
+        <div class="onboarding-actions">
+          <button class="btn-secondary" id="skip-step-2">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="onboarding-step hidden" id="step-3">
+        <div class="step-icon">🕐</div>
+        <h2>Clock &amp; Location</h2>
+        <p>Choose your preferred time format and let us show you the weather.</p>
+        <p class="step-label">Step 3 of 4 — Preferences</p>
+
+        <div class="time-format-row">
+          <button class="format-btn selected" data-format="12hr">12-hour <span class="format-example">1:30 PM</span></button>
+          <button class="format-btn" data-format="24hr">24-hour <span class="format-example">13:30</span></button>
+        </div>
+
+        <div class="location-row">
+          <div class="location-input-wrap">
+            <input type="text" id="onboarding-location-input" placeholder="e.g. London, UK or New York, US" />
+            <button id="detect-location-btn" title="Detect my location">📍 Detect</button>
+          </div>
+          <p id="location-status" class="location-status"></p>
+        </div>
+
+        <div class="onboarding-actions">
+          <button class="btn-primary" id="next-to-step-4">Next →</button>
+        </div>
+      </div>
+
+      <div class="onboarding-step hidden" id="step-4">
+        <div class="step-icon">🎯</div>
+        <h2>Set your focus</h2>
+        <p>What's the one thing you need to accomplish today?</p>
+        <p class="step-label">Step 4 of 4 — Your daily goal</p>
+        <input type="text" id="onboarding-focus-input" placeholder="e.g. Finish the project proposal..." maxlength="100" />
+        <div class="onboarding-actions">
+          <button class="btn-primary" id="finish-onboarding">Let's Go →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BACKGROUND ─────────────────────────────────────────────────── -->
+  <div id="bg"></div>
+  <div id="bg-overlay"></div>
+
+  <!-- ── MAIN LAYOUT ────────────────────────────────────────────────── -->
+  <main id="app">
+
+    <!-- TOP BAR -->
+    <header id="topbar">
+      <div id="weather-widget">
+        <span id="weather-icon">⏳</span>
+        <span id="weather-temp">--°</span>
+        <span id="weather-desc">Loading...</span>
+      </div>
+      <div id="impact-meter">
+        <span class="impact-label">Community raised</span>
+        <span id="impact-amount">$0.00</span>
+        <span class="impact-label">for</span>
+        <span id="impact-charity">your charity</span>
+      </div>
+      <button id="settings-btn" title="Settings">⚙️</button>
+    </header>
+
+    <!-- CLOCK + FOCUS (CENTER) -->
+    <section id="center">
+      <div id="clock">
+        <span id="time">00:00</span>
+        <span id="date-display">Monday, January 1</span>
+      </div>
+
+      <div id="focus-container">
+        <div id="focus-display" class="hidden">
+          <p id="focus-label">TODAY'S FOCUS</p>
+          <p id="focus-text"></p>
+          <div class="focus-actions">
+            <button id="focus-done-btn" title="Mark complete">✓ Done</button>
+            <button id="focus-edit-btn" title="Edit">✎</button>
+          </div>
+        </div>
+        <div id="focus-input-container">
+          <input type="text" id="focus-input" placeholder="What's your one focus for today?" maxlength="100" />
+          <button id="focus-set-btn">Set Focus</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEARCH BAR -->
+    <section id="search-section">
+      <div id="search-bar">
+        <span id="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search the web..." />
+      </div>
+      <p id="search-disclosure">Searches support our charity partners</p>
+    </section>
+
+    <!-- BOTTOM PANEL: WISHLIST + TODO -->
+    <section id="bottom-panel">
+
+      <!-- WISHLIST -->
+      <div id="wishlist-panel">
+        <div class="panel-header">
+          <h3>My GoodList <span id="wishlist-count" class="badge">0</span></h3>
+          <button id="sort-btn" title="Sort by price drop">↓ Price</button>
+        </div>
+        <div id="wishlist-grid">
+          <div id="wishlist-empty">
+            <p>🛒 Right-click any product on a shopping site</p>
+            <p>and select <strong>"Add to GoodList"</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TODO LIST -->
+      <div id="todo-panel">
+        <div class="panel-header">
+          <h3>Tasks <span id="todo-count" class="badge">0</span></h3>
+          <button id="todo-clear-btn" title="Clear completed">✓ Clear done</button>
+        </div>
+        <div id="todo-input-row">
+          <input type="text" id="todo-input" placeholder="Add a task..." maxlength="80" />
+          <button id="todo-add-btn">+</button>
+        </div>
+        <ul id="todo-list"></ul>
+      </div>
+
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="footer">
+      <span>Links on this page may generate a commission to support our charity partners.</span>
+      <span id="footer-charity"></span>
+    </footer>
+
+  </main>
+
+  <!-- ── SETTINGS PANEL ─────────────────────────────────────────────── -->
+  <div id="settings-panel" class="hidden">
+    <div class="settings-inner">
+      <div class="settings-header">
+        <h3>Settings</h3>
+        <button id="settings-close">✕</button>
+      </div>
+      <label>Your Charity</label>
+      <select id="settings-charity">
+        <option>St. Jude Children's Hospital</option>
+        <option>ASPCA</option>
+        <option>Red Cross</option>
+        <option>WWF</option>
+        <option>Feeding America</option>
+        <option>UNICEF</option>
+      </select>
+      <label>Time Format</label>
+      <div class="settings-time-toggle">
+        <button class="settings-format-btn" data-format="12hr">12-hour</button>
+        <button class="settings-format-btn" data-format="24hr">24-hour</button>
+      </div>
+      <label>Search Engine</label>
+      <select id="settings-search">
+        <option value="https://www.google.com/search?q=">Google</option>
+        <option value="https://www.bing.com/search?q=">Bing</option>
+        <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+      </select>
+      <label>Weather Location</label>
+      <input type="text" id="settings-location" placeholder="e.g. New York, US" />
+      <button class="btn-primary" id="settings-save">Save Settings</button>
+      <button class="btn-danger" id="settings-reset">Reset All Data</button>
+    </div>
+  </div>
+
+  <script src="js/newtab.js"></script>
+</body>
+</html>
