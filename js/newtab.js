@@ -1,21 +1,31 @@
 // ── CONFIG ────────────────────────────────────────────────────────────────
-// Replace these with your own free API keys
 const CONFIG = {
   UNSPLASH_KEY:     'YOUR_UNSPLASH_ACCESS_KEY',
   WEATHER_KEY:      'YOUR_OPENWEATHERMAP_KEY',
   DEFAULT_LOCATION: 'New York,US',
-  SEARCH_URL:       'https://www.google.com/search?q=', // swap for Coinis endpoint later
+  SEARCH_URL:       'https://www.google.com/search?q=',
 
-  // ── SUPABASE ── Replace these two values with yours from Settings → API
-  SUPABASE_URL:      'YOUR_SUPABASE_URL',       // e.g. https://xxxx.supabase.co
-  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',  // the long publishable key
+  SUPABASE_URL:      'YOUR_SUPABASE_URL',
+  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
 };
 
+// ── DEALS DATA ────────────────────────────────────────────────────────────
+const DEALS = [
+  { title: 'Anker 65W USB-C Charger — charge 3 devices at once', salePrice: '$25.99', originalPrice: '$45.99', discount: '43% OFF', merchant: 'Amazon', image: 'https://m.media-amazon.com/images/I/61TTj9OXEHL._AC_SL1500_.jpg', url: 'https://www.amazon.com/s?k=anker+65w+usb-c+charger' },
+  { title: 'Echo Dot (5th Gen) Smart Speaker with Alexa', salePrice: '$22.99', originalPrice: '$49.99', discount: '54% OFF', merchant: 'Amazon', image: 'https://m.media-amazon.com/images/I/71xoR4A6q3L._AC_SL1000_.jpg', url: 'https://www.amazon.com/s?k=echo+dot+5th+gen' },
+  { title: 'Logitech MX Master 3S Wireless Mouse', salePrice: '$79.99', originalPrice: '$99.99', discount: '20% OFF', merchant: 'Best Buy', image: 'https://resource.logitech.com/w_692,c_lpad,ar_4:3,q_auto,f_auto,dpr_1.0/d_transparent.gif/content/dam/logitech/en/products/mice/mx-master-3s/gallery/mx-master-3s-mouse-top-view-graphite.png', url: 'https://www.bestbuy.com/site/searchpage.jsp?st=logitech+mx+master+3s' },
+  { title: 'Kindle Paperwhite — 16GB, waterproof e-reader', salePrice: '$99.99', originalPrice: '$139.99', discount: '29% OFF', merchant: 'Amazon', image: 'https://m.media-amazon.com/images/I/61PJMcDdHNL._AC_SL1500_.jpg', url: 'https://www.amazon.com/s?k=kindle+paperwhite+16gb' },
+  { title: 'Hanes Men\'s Ecosmart Hoodie Sweatshirt', salePrice: '$14.00', originalPrice: '$24.00', discount: '42% OFF', merchant: 'Amazon', image: 'https://m.media-amazon.com/images/I/81HWGBjNBxL._AC_UX679_.jpg', url: 'https://www.amazon.com/s?k=hanes+ecosmart+hoodie' },
+  { title: 'Instant Pot Duo 7-in-1 Electric Pressure Cooker 6Qt', salePrice: '$59.99', originalPrice: '$99.95', discount: '40% OFF', merchant: 'Amazon', image: 'https://m.media-amazon.com/images/I/71WtwEvYDOS._AC_SL1500_.jpg', url: 'https://www.amazon.com/s?k=instant+pot+duo+6qt' },
+  { title: 'Samsung 970 EVO Plus 1TB NVMe SSD', salePrice: '$69.99', originalPrice: '$129.99', discount: '46% OFF', merchant: 'Newegg', image: 'https://image-us.samsung.com/SamsungUS/home/computing/memory-storage/all-ssd/05202019/970-EVO-Plus_main_black.jpg', url: 'https://www.newegg.com/p/pl?d=samsung+970+evo+plus+1tb' },
+];
+
 // ── STATE ─────────────────────────────────────────────────────────────────
-let settings = {};
+let settings  = {};
 let wishlist  = [];
 let todos     = [];
 let focusData = {};
+let streakData = { count: 0, lastDate: '' };
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -23,10 +33,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   initOnboarding();
   initClock();
   initFocus();
+  initStreak();
   initSearch();
   initWishlist();
   initTodo();
   initSettings();
+  initDealOfTheDay();
   loadBackground();
   loadWeather();
   loadImpactMeter();
@@ -35,14 +47,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── STATE MANAGEMENT ──────────────────────────────────────────────────────
 async function loadState() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(['settings', 'todos', 'focusData'], (syncData) => {
+    chrome.storage.sync.get(['settings', 'todos', 'focusData', 'streakData'], (syncData) => {
       chrome.storage.local.get(['wishlist'], (localData) => {
-        settings  = syncData.settings
+        settings   = syncData.settings
           ? { timeFormat: '12hr', location: '', ...syncData.settings }
           : { charity: "St. Jude Children's Hospital", search: CONFIG.SEARCH_URL, location: '', timeFormat: '12hr' };
-        todos     = syncData.todos     || [];
-        focusData = syncData.focusData || { text: '', date: '', done: false };
-        wishlist  = localData.wishlist || [];
+        todos      = syncData.todos      || [];
+        focusData  = syncData.focusData  || { text: '', date: '', done: false };
+        streakData = syncData.streakData || { count: 0, lastDate: '' };
+        wishlist   = localData.wishlist  || [];
         resolve();
       });
     });
@@ -53,6 +66,7 @@ function saveSettings()  { chrome.storage.sync.set({ settings }); }
 function saveTodos()     { chrome.storage.sync.set({ todos }); }
 function saveFocus()     { chrome.storage.sync.set({ focusData }); }
 function saveWishlist()  { chrome.storage.local.set({ wishlist }); }
+function saveStreak()    { chrome.storage.sync.set({ streakData }); }
 
 // ── ONBOARDING ────────────────────────────────────────────────────────────
 function initOnboarding() {
@@ -106,9 +120,7 @@ function initOnboarding() {
     });
   });
 
-  document.getElementById('detect-location-btn').addEventListener('click', () => {
-    tryGeoDetect(true);
-  });
+  document.getElementById('detect-location-btn').addEventListener('click', () => tryGeoDetect(true));
 
   document.getElementById('next-to-step-4').addEventListener('click', () => {
     const locVal = document.getElementById('onboarding-location-input').value.trim();
@@ -122,18 +134,18 @@ function initOnboarding() {
   document.getElementById('finish-onboarding').addEventListener('click', () => {
     const focusInput = document.getElementById('onboarding-focus-input').value.trim();
     if (selectedCharity) settings.charity = selectedCharity;
-    settings.timeFormat      = selectedFormat;
-    settings.onboardingDone  = true;
+    settings.timeFormat     = selectedFormat;
+    settings.onboardingDone = true;
     if (!settings.location) settings.location = CONFIG.DEFAULT_LOCATION;
     saveSettings();
-
     if (focusInput) {
       focusData = { text: focusInput, date: todayKey(), done: false };
       saveFocus();
+      updateStreak(); // starting a focus on day 1 counts as day 1
     }
-
     overlay.classList.add('hidden');
     renderFocus();
+    renderStreak();
     updateFooterCharity();
     loadWeather();
   });
@@ -155,7 +167,7 @@ function tryGeoDetect(userInitiated = false) {
   }
 
   statusEl.textContent = '📍 Detecting your location...';
-  statusEl.className = 'location-status detecting';
+  statusEl.className   = 'location-status detecting';
 
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
@@ -206,13 +218,81 @@ function initClock() {
   setInterval(tick, 1000);
 }
 
+// ── STREAK ────────────────────────────────────────────────────────────────
+function initStreak() {
+  // If today already has a focus set, make sure streak is up to date
+  if (focusData.text && focusData.date === todayKey()) {
+    updateStreak();
+  } else {
+    // Check if streak should be broken (missed yesterday)
+    const yesterday = getPreviousDay(todayKey());
+    if (streakData.lastDate && streakData.lastDate !== todayKey() && streakData.lastDate !== yesterday) {
+      // Missed at least one day — reset streak
+      streakData.count    = 0;
+      streakData.lastDate = '';
+      saveStreak();
+    }
+  }
+  renderStreak();
+}
+
+function updateStreak() {
+  const today     = todayKey();
+  const yesterday = getPreviousDay(today);
+
+  if (streakData.lastDate === today) return; // already counted today
+
+  if (streakData.lastDate === yesterday) {
+    // Consecutive day — increment
+    streakData.count++;
+  } else if (streakData.lastDate === '') {
+    // First ever focus
+    streakData.count = 1;
+  } else {
+    // Missed days — restart from 1
+    streakData.count = 1;
+  }
+
+  streakData.lastDate = today;
+  saveStreak();
+  renderStreak();
+}
+
+function renderStreak() {
+  const el = document.getElementById('streak-display');
+  if (!el) return;
+
+  if (streakData.count <= 0) {
+    el.classList.add('hidden');
+    return;
+  }
+
+  el.classList.remove('hidden');
+
+  const flame = streakData.count >= 7  ? '🔥' :
+                streakData.count >= 3  ? '✨' : '⚡';
+
+  const label = streakData.count === 1 ? '1 day streak — keep it going!'       :
+                streakData.count < 7   ? `${streakData.count} day streak!`      :
+                streakData.count < 30  ? `${streakData.count} day streak! 🎉`   :
+                                         `${streakData.count} days! Unstoppable!`;
+
+  el.querySelector('#streak-icon').textContent  = flame;
+  el.querySelector('#streak-count').textContent = label;
+}
+
+function getPreviousDay(dateStr) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split('T')[0];
+}
+
 // ── FOCUS ─────────────────────────────────────────────────────────────────
 function initFocus() {
   if (focusData.date && focusData.date !== todayKey()) {
     focusData = { text: '', date: '', done: false };
     saveFocus();
   }
-
   renderFocus();
 
   document.getElementById('focus-set-btn').addEventListener('click', setFocus);
@@ -237,6 +317,7 @@ function setFocus() {
   if (!val) return;
   focusData = { text: val, date: todayKey(), done: false };
   saveFocus();
+  updateStreak(); // setting a focus counts toward the streak
   renderFocus();
 }
 
@@ -261,28 +342,48 @@ function renderFocus() {
 function initSearch() {
   const input = document.getElementById('search-input');
 
-  // Focus search bar when any letter/number key is pressed on the page
+  // Press any letter/number on the page → jump to search bar instantly
   document.addEventListener('keydown', (e) => {
-    const tag = document.activeElement.tagName.toLowerCase();
-    const isTyping = tag === 'input' || tag === 'textarea' || document.activeElement.isContentEditable;
+    const tag        = document.activeElement.tagName.toLowerCase();
+    const isTyping   = tag === 'input' || tag === 'textarea' || document.activeElement.isContentEditable;
     const isModifier = e.ctrlKey || e.metaKey || e.altKey;
-    const isChar = e.key.length === 1;
-
-    if (isChar && !isTyping && !isModifier) {
-      input.focus();
-      // Don't preventDefault — let the keystroke land in the input naturally
-    }
+    const isChar     = e.key.length === 1;
+    if (isChar && !isTyping && !isModifier) input.focus();
   });
 
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && input.value.trim()) {
       window.location.href = (settings.search || CONFIG.SEARCH_URL) + encodeURIComponent(input.value.trim());
     }
-    // Escape clears and blurs the search bar
-    if (e.key === 'Escape') {
-      input.value = '';
-      input.blur();
-    }
+    if (e.key === 'Escape') { input.value = ''; input.blur(); }
+  });
+}
+
+// ── DEAL OF THE DAY ───────────────────────────────────────────────────────
+function initDealOfTheDay() {
+  const section = document.getElementById('deal-section');
+
+  chrome.storage.local.get(['dealDismissed'], (data) => {
+    if (data.dealDismissed === todayKey()) return;
+
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const deal      = DEALS[dayOfYear % DEALS.length];
+
+    document.getElementById('deal-title').textContent          = deal.title;
+    document.getElementById('deal-sale-price').textContent     = deal.salePrice;
+    document.getElementById('deal-original-price').textContent = deal.originalPrice;
+    document.getElementById('deal-discount').textContent       = deal.discount;
+    document.getElementById('deal-merchant').textContent       = `via ${deal.merchant}`;
+    document.getElementById('deal-image').src                  = deal.image;
+    document.getElementById('deal-image').alt                  = deal.title;
+    document.getElementById('deal-btn').href                   = deal.url;
+
+    section.classList.remove('hidden');
+
+    document.getElementById('deal-dismiss').addEventListener('click', () => {
+      section.classList.add('hidden');
+      chrome.storage.local.set({ dealDismissed: todayKey() });
+    });
   });
 }
 
@@ -466,34 +567,24 @@ function updateFooterCharity() {
 }
 
 // ── BACKGROUND IMAGE ──────────────────────────────────────────────────────
-// Cached daily — fetches ONE image from Unsplash per day per user.
-// Every tab open that same day reuses the cached URL from chrome.storage.local.
-// Keeps us well within Unsplash's 50 req/hour free tier regardless of tab count.
 async function loadBackground() {
   if (CONFIG.UNSPLASH_KEY === 'YOUR_UNSPLASH_ACCESS_KEY') return;
-
   const today = todayKey();
-
   chrome.storage.local.get(['bgCache'], async (data) => {
     const cache = data.bgCache;
-
-    // Cached image from today — use it instantly, no API call needed
     if (cache && cache.date === today && cache.url) {
       document.getElementById('bg').style.backgroundImage = `url(${cache.url})`;
       return;
     }
-
-    // Cache is stale or missing — fetch a fresh image
     try {
       const res     = await fetch(`https://api.unsplash.com/photos/random?orientation=landscape&query=nature,landscape&client_id=${CONFIG.UNSPLASH_KEY}`);
       const imgData = await res.json();
       if (imgData.urls?.regular) {
         const url = imgData.urls.regular;
         document.getElementById('bg').style.backgroundImage = `url(${url})`;
-        // Cache with today's date — reused for all tabs until midnight
         chrome.storage.local.set({ bgCache: { date: today, url } });
       }
-    } catch (e) { /* graceful fallback to CSS gradient */ }
+    } catch (e) {}
   });
 }
 
@@ -529,34 +620,19 @@ function getWeatherEmoji(id) {
 async function loadImpactMeter() {
   const el = document.getElementById('impact-amount');
   if (!el) return;
-
-  if (CONFIG.SUPABASE_URL === 'YOUR_SUPABASE_URL') {
-    el.textContent = '$0.00';
-    return;
-  }
-
+  if (CONFIG.SUPABASE_URL === 'YOUR_SUPABASE_URL') { el.textContent = '$0.00'; return; }
   try {
     const res = await fetch(
       `${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated&select=value`,
-      {
-        headers: {
-          'apikey':        CONFIG.SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-        }
-      }
+      { headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` } }
     );
-
     if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
-
     const data = await res.json();
-
     if (data && data.length > 0) {
-      const total = parseFloat(data[0].value) || 0;
-      animateCounter(el, 0, total, 1200);
+      animateCounter(el, 0, parseFloat(data[0].value) || 0, 1200);
     } else {
       el.textContent = '$0.00';
     }
-
   } catch (e) {
     console.warn('[GoodList] Impact meter fetch failed:', e.message);
     el.textContent = '$0.00';
@@ -566,34 +642,16 @@ async function loadImpactMeter() {
 // ── INCREMENT DONATION COUNTER ────────────────────────────────────────────
 async function incrementDonationCounter(amount = 0) {
   if (CONFIG.SUPABASE_URL === 'YOUR_SUPABASE_URL' || amount <= 0) return;
-
   try {
-    const res = await fetch(
-      `${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated&select=value`,
-      {
-        headers: {
-          'apikey':        CONFIG.SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-        }
-      }
-    );
-    const data     = await res.json();
-    const current  = parseFloat(data?.[0]?.value) || 0;
+    const res     = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated&select=value`, { headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` } });
+    const data    = await res.json();
+    const current = parseFloat(data?.[0]?.value) || 0;
     const newTotal = parseFloat((current + (amount * 0.5)).toFixed(2));
-
-    await fetch(
-      `${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated`,
-      {
-        method: 'PATCH',
-        headers: {
-          'apikey':        CONFIG.SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-          'Content-Type':  'application/json',
-          'Prefer':        'return=minimal',
-        },
-        body: JSON.stringify({ value: newTotal }),
-      }
-    );
+    await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated`, {
+      method: 'PATCH',
+      headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ value: newTotal }),
+    });
   } catch (e) {
     console.warn('[GoodList] Counter increment failed:', e.message);
   }

@@ -117,6 +117,12 @@
           <button id="focus-set-btn">Set Focus</button>
         </div>
       </div>
+
+      <!-- STREAK DISPLAY — shown below focus when streak > 0 -->
+      <div id="streak-display" class="hidden">
+        <span id="streak-icon">🔥</span>
+        <span id="streak-count"></span>
+      </div>
     </section>
 
     <!-- SEARCH BAR -->
@@ -126,6 +132,25 @@
         <input type="text" id="search-input" placeholder="Search the web..." />
       </div>
       <p id="search-disclosure">Searches support our charity partners</p>
+    </section>
+
+    <!-- DEAL OF THE DAY -->
+    <section id="deal-section" class="hidden">
+      <div id="deal-card">
+        <div id="deal-badge">🔥 Deal of the Day</div>
+        <img id="deal-image" src="" alt="" />
+        <div id="deal-info">
+          <p id="deal-title"></p>
+          <div id="deal-prices">
+            <span id="deal-sale-price"></span>
+            <span id="deal-original-price"></span>
+            <span id="deal-discount"></span>
+          </div>
+          <p id="deal-merchant"></p>
+        </div>
+        <a id="deal-btn" href="#" target="_blank" rel="noopener">Shop Deal →</a>
+        <button id="deal-dismiss" title="Dismiss">✕</button>
+      </div>
     </section>
 
     <!-- BOTTOM PANEL: WISHLIST + TODO -->
