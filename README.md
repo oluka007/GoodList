@@ -1,71 +1,71 @@
-# 🛒 GoodList Chrome Extension
+# GoodList
 
-> Your productive new tab that gives back.
+GoodList is a Chrome new-tab extension for people who want their browser to do more than open another empty page.
 
-Test Link
-https://sovrn.co/1axn9yl
+It combines a calm personal dashboard with a shopping wishlist and price-drop tracker, so every new tab helps you stay focused, keep track of what you want, and build toward measurable impact.
 
+## Why GoodList Exists
 
-## Quick Start (Load in Chrome)
+Most new tabs are dead space. GoodList turns that moment into something useful:
 
-1. Open Chrome and go to `chrome://extensions`
-2. Enable **Developer Mode** (top right toggle)
-3. Click **Load unpacked**
-4. Select this `GoodList` folder
-5. Open a new tab — you're live!
+- Set one clear focus for the day
+- Capture products from anywhere with a right-click
+- See saved items, prices, and price drops in one place
+- Keep light task management front and center
+- Add weather, search, and a live sense of momentum to your routine
 
-## Before You Ship: Add Your API Keys
+The bigger idea is simple: make everyday browsing more intentional, and tie shopping behavior to something that can create value beyond the purchase itself.
 
-Open `js/newtab.js` and replace the placeholders at the top:
+## What Makes It Useful
 
-```js
-const CONFIG = {
-  UNSPLASH_KEY: 'YOUR_UNSPLASH_ACCESS_KEY',   // free at unsplash.com/developers
-  WEATHER_KEY:  'YOUR_OPENWEATHERMAP_KEY',    // free at openweathermap.org/api
-  ...
-};
-```
+### A new tab that reduces context switching
 
-## Project Structure
+GoodList puts your time, daily focus, tasks, weather, and search in one screen so you can reset quickly and get back to what matters.
 
-```
-GoodList/
-├── manifest.json        Chrome extension config (MV3)
-├── index.html           New tab page
-├── css/
-│   └── style.css        All styling
-├── js/
-│   ├── newtab.js        Clock, focus, search, wishlist display, todos
-│   ├── background.js    Service worker: context menu + scraper + price watch
-│   └── content.js       Content script (Phase 3 placeholder)
-└── icons/
-    ├── icon16.png        ← You need to add these
-    ├── icon48.png        ← Use any 16x16, 48x48, 128x128 PNG
-    └── icon128.png       ← Green shopping bag recommended
-```
+### A wishlist that lives where shopping happens
 
-## Icons
+When you find something worth remembering, right-click the page and save it to GoodList. The extension pulls in product details like title, image, and price so your list stays visual and easy to scan.
 
-You need to add 3 icon files before Chrome will load the extension:
-- `icons/icon16.png`   (16×16px)
-- `icons/icon48.png`   (48×48px)  
-- `icons/icon128.png`  (128×128px)
+### Price-drop visibility without extra effort
 
-Quick option: use any green shopping bag emoji exported as PNG, or generate
-free icons at https://favicon.io
+GoodList watches for price changes on saved items and highlights drops directly in your new-tab dashboard, so the best buying moment is easier to spot.
 
-## Phase Roadmap
+### A more meaningful shopping loop
 
-| Phase | Status | What's built |
-|-------|--------|-------------|
-| 1 - MVP Skeleton | ✅ Done | Clock, focus, search bar, layout |
-| 2 - The Collector | ✅ Done | Context menu, og: scraper, price watch |
-| 3 - Monetization | ⏳ Next | Sovrn affiliate links, Coinis search, Supabase counter |
-| 4 - Polish & Publish | ⏳ Soon | Deal of the Day, screenshots, Chrome Store |
+Saved product links can be routed through affiliate monetization, supporting the app's broader charity-focused model. The product is built around the idea that routine browsing and shopping can contribute to something positive.
 
-## Phase 3 Checklist
+## Core Features
 
-- [ ] Register at [Sovrn Commerce](https://commerce.sovrn.com) for affiliate magic links
-- [ ] Replace `affiliateUrl: null` in background.js with Sovrn API call
-- [ ] Sign up for [Coinis](https://coinis.com) or [CodeFuel](https://www.codefuel.com) — replace `CONFIG.SEARCH_URL`
-- [ ] Create free [Supabase](https://supabase.com) project → replace `loadImpactMeter()` placeholder in newtab.js
+- Daily focus prompt with save, edit, and done states
+- Lightweight to-do list for quick task capture
+- Right-click "Add to GoodList" product saving
+- Product cards with image, price, and quick open behavior
+- Price-drop detection with badge and notification support
+- Search bar built into the new-tab experience
+- Weather widget with location preference
+- Rotating background imagery
+- Charity selection and impact meter concept built into onboarding
+
+## Best For
+
+- People who open dozens of tabs a day and want a calmer home base
+- Shoppers who keep mental wishlists and miss better prices
+- Students, freelancers, and builders who want a lightweight daily reset
+- Anyone interested in productivity tools with a more purposeful angle
+
+## Product Direction
+
+GoodList sits between a productivity dashboard, a wishlist manager, and a mission-driven browser utility.
+
+The goal is not to be a full task app or a full shopping platform. It is meant to be fast, ambient, and useful enough that opening a new tab feels like regaining control instead of losing momentum.
+
+## Try It Locally
+
+If you want to load the current build in Chrome:
+
+1. Open `chrome://extensions`
+2. Enable Developer Mode
+3. Click `Load unpacked`
+4. Select the `GoodList` folder
+
+Some features rely on configured third-party services such as Unsplash, OpenWeather, Supabase, and affiliate link monetization.

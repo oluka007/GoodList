@@ -5,6 +5,10 @@ const CONFIG = {
   WEATHER_KEY:      'YOUR_OPENWEATHERMAP_KEY',
   DEFAULT_LOCATION: 'New York,US',
   SEARCH_URL:       'https://www.google.com/search?q=', // swap for Coinis endpoint later
+
+  // ── SUPABASE ── Replace these two values with yours from Settings → API
+  SUPABASE_URL:      'YOUR_SUPABASE_URL',       // e.g. https://xxxx.supabase.co
+  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',  // the long publishable key
 };
 
 // ── STATE ─────────────────────────────────────────────────────────────────
@@ -34,7 +38,7 @@ async function loadState() {
     chrome.storage.sync.get(['settings', 'todos', 'focusData'], (syncData) => {
       chrome.storage.local.get(['wishlist'], (localData) => {
         settings  = syncData.settings
-          ? { timeFormat: '12hr', location: '', ...syncData.settings }  // merge so old installs get defaults
+          ? { timeFormat: '12hr', location: '', ...syncData.settings }
           : { charity: "St. Jude Children's Hospital", search: CONFIG.SEARCH_URL, location: '', timeFormat: '12hr' };
         todos     = syncData.todos     || [];
         focusData = syncData.focusData || { text: '', date: '', done: false };
@@ -64,9 +68,8 @@ function initOnboarding() {
 
   overlay.classList.remove('hidden');
   let selectedCharity = null;
-  let selectedFormat  = '12hr'; // default
+  let selectedFormat  = '12hr';
 
-  // ── Step 1: Charity selection ──
   charityBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       charityBtns.forEach(b => b.classList.remove('selected'));
@@ -79,11 +82,10 @@ function initOnboarding() {
     });
   });
 
-  // ── Step 2: Save first item (skippable) ──
   document.getElementById('skip-step-2').addEventListener('click', () => {
     step2.classList.add('hidden');
     step3.classList.remove('hidden');
-    tryGeoDetect(); // auto-attempt geo when step 3 appears
+    tryGeoDetect();
   });
 
   chrome.storage.onChanged.addListener((changes) => {
@@ -94,20 +96,18 @@ function initOnboarding() {
     }
   });
 
-  // ── Step 3: Time format + location ──
   formatBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       formatBtns.forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedFormat = btn.dataset.format;
-      // Live-preview the clock immediately
       settings.timeFormat = selectedFormat;
       initClock();
     });
   });
 
   document.getElementById('detect-location-btn').addEventListener('click', () => {
-    tryGeoDetect(true); // manual tap = show feedback
+    tryGeoDetect(true);
   });
 
   document.getElementById('next-to-step-4').addEventListener('click', () => {
@@ -119,7 +119,6 @@ function initOnboarding() {
     document.getElementById('onboarding-focus-input').focus();
   });
 
-  // ── Step 4: Daily focus ──
   document.getElementById('finish-onboarding').addEventListener('click', () => {
     const focusInput = document.getElementById('onboarding-focus-input').value.trim();
     if (selectedCharity) settings.charity = selectedCharity;
@@ -139,7 +138,6 @@ function initOnboarding() {
     loadWeather();
   });
 
-  // Enter key on focus input finishes onboarding
   document.getElementById('onboarding-focus-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('finish-onboarding').click();
   });
@@ -162,16 +160,15 @@ function tryGeoDetect(userInitiated = false) {
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
       try {
-        // Reverse geocode using a free no-key API
         const { latitude: lat, longitude: lon } = pos.coords;
         const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
         const data = await res.json();
         const city    = data.address?.city || data.address?.town || data.address?.village || '';
         const country = data.address?.country_code?.toUpperCase() || '';
         if (city) {
-          const locationStr = country ? `${city},${country}` : city;
-          inputEl.value       = locationStr;
-          settings.location   = locationStr;
+          const locationStr    = country ? `${city},${country}` : city;
+          inputEl.value        = locationStr;
+          settings.location    = locationStr;
           statusEl.textContent = `✓ Found: ${city}, ${country}`;
           statusEl.className   = 'location-status success';
         } else {
@@ -196,16 +193,11 @@ function tryGeoDetect(userInitiated = false) {
 // ── CLOCK ─────────────────────────────────────────────────────────────────
 function initClock() {
   const tick = () => {
-    const now    = new Date();
-    const is12hr = (settings.timeFormat || '12hr') === '12hr';
-    let timeStr;
-    if (is12hr) {
-      // e.g. "1:22 PM"
-      timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    } else {
-      // e.g. "13:22"
-      timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-    }
+    const now     = new Date();
+    const is12hr  = (settings.timeFormat || '12hr') === '12hr';
+    const timeStr = is12hr
+      ? now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      : now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     document.getElementById('time').textContent = timeStr;
     document.getElementById('date-display').textContent =
       now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -216,7 +208,6 @@ function initClock() {
 
 // ── FOCUS ─────────────────────────────────────────────────────────────────
 function initFocus() {
-  // Auto-rollover: if saved focus is from a previous day, clear it
   if (focusData.date && focusData.date !== todayKey()) {
     focusData = { text: '', date: '', done: false };
     saveFocus();
@@ -257,14 +248,9 @@ function renderFocus() {
   if (focusData.text) {
     display.classList.remove('hidden');
     inputCont.classList.add('hidden');
-    focusText.textContent = focusData.text;
-    if (focusData.done) {
-      focusText.style.textDecoration = 'line-through';
-      focusText.style.opacity = '0.5';
-    } else {
-      focusText.style.textDecoration = '';
-      focusText.style.opacity = '';
-    }
+    focusText.textContent          = focusData.text;
+    focusText.style.textDecoration = focusData.done ? 'line-through' : '';
+    focusText.style.opacity        = focusData.done ? '0.5' : '';
   } else {
     display.classList.add('hidden');
     inputCont.classList.remove('hidden');
@@ -274,10 +260,28 @@ function renderFocus() {
 // ── SEARCH ────────────────────────────────────────────────────────────────
 function initSearch() {
   const input = document.getElementById('search-input');
+
+  // Focus search bar when any letter/number key is pressed on the page
+  document.addEventListener('keydown', (e) => {
+    const tag = document.activeElement.tagName.toLowerCase();
+    const isTyping = tag === 'input' || tag === 'textarea' || document.activeElement.isContentEditable;
+    const isModifier = e.ctrlKey || e.metaKey || e.altKey;
+    const isChar = e.key.length === 1;
+
+    if (isChar && !isTyping && !isModifier) {
+      input.focus();
+      // Don't preventDefault — let the keystroke land in the input naturally
+    }
+  });
+
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && input.value.trim()) {
-      const url = (settings.search || CONFIG.SEARCH_URL) + encodeURIComponent(input.value.trim());
-      window.location.href = url;
+      window.location.href = (settings.search || CONFIG.SEARCH_URL) + encodeURIComponent(input.value.trim());
+    }
+    // Escape clears and blurs the search bar
+    if (e.key === 'Escape') {
+      input.value = '';
+      input.blur();
     }
   });
 }
@@ -287,16 +291,11 @@ function initWishlist() {
   renderWishlist();
 
   document.getElementById('sort-btn').addEventListener('click', () => {
-    wishlist.sort((a, b) => {
-      const aDrop = a.priceDrop || 0;
-      const bDrop = b.priceDrop || 0;
-      return bDrop - aDrop;
-    });
+    wishlist.sort((a, b) => (b.priceDrop || 0) - (a.priceDrop || 0));
     saveWishlist();
     renderWishlist();
   });
 
-  // Listen for new items added by background.js
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes.wishlist) {
       wishlist = changes.wishlist.newValue || [];
@@ -311,10 +310,7 @@ function renderWishlist() {
   const count = document.getElementById('wishlist-count');
 
   count.textContent = wishlist.length;
-
-  // Clear existing cards (keep the empty state div)
-  const existingCards = grid.querySelectorAll('.wishlist-card');
-  existingCards.forEach(c => c.remove());
+  grid.querySelectorAll('.wishlist-card').forEach(c => c.remove());
 
   if (wishlist.length === 0) {
     empty.classList.remove('hidden');
@@ -324,11 +320,9 @@ function renderWishlist() {
   empty.classList.add('hidden');
 
   wishlist.forEach((item, idx) => {
-    const card = document.createElement('div');
-    card.className = 'wishlist-card';
-    card.dataset.idx = idx;
-
     const hasDrop = item.priceDrop && item.priceDrop > 0;
+    const card    = document.createElement('div');
+    card.className = 'wishlist-card';
 
     card.innerHTML = `
       ${hasDrop ? `<div class="price-drop-badge">↓${item.priceDrop}%</div>` : ''}
@@ -340,15 +334,11 @@ function renderWishlist() {
       </div>
     `;
 
-    // Click card → open affiliate link
     card.addEventListener('click', (e) => {
       if (e.target.classList.contains('card-remove')) return;
-      if (item.affiliateUrl || item.url) {
-        window.open(item.affiliateUrl || item.url, '_blank');
-      }
+      if (item.affiliateUrl || item.url) window.open(item.affiliateUrl || item.url, '_blank');
     });
 
-    // Remove button
     card.querySelector('.card-remove').addEventListener('click', (e) => {
       e.stopPropagation();
       wishlist.splice(idx, 1);
@@ -362,11 +352,9 @@ function renderWishlist() {
 
 // ── TODO ─────────────────────────────────────────────────────────────────
 function initTodo() {
-  // Roll over yesterday's unfinished tasks
   const today = todayKey();
   todos = todos.map(t => ({ ...t, rolledOver: t.date !== today && !t.done ? true : t.rolledOver }));
   saveTodos();
-
   renderTodos();
 
   document.getElementById('todo-add-btn').addEventListener('click', addTodo);
@@ -382,7 +370,7 @@ function initTodo() {
 
 function addTodo() {
   const input = document.getElementById('todo-input');
-  const val = input.value.trim();
+  const val   = input.value.trim();
   if (!val) return;
   todos.push({ id: Date.now(), text: val, done: false, date: todayKey() });
   input.value = '';
@@ -393,17 +381,16 @@ function addTodo() {
 function renderTodos() {
   const list  = document.getElementById('todo-list');
   const count = document.getElementById('todo-count');
-  const active = todos.filter(t => !t.done);
-  count.textContent = active.length;
+  count.textContent = todos.filter(t => !t.done).length;
   list.innerHTML = '';
 
   todos.forEach((todo, idx) => {
     const li = document.createElement('li');
     li.className = `todo-item ${todo.done ? 'done' : ''}`;
     li.innerHTML = `
-      <input type="checkbox" class="todo-checkbox" ${todo.done ? 'checked' : ''} data-idx="${idx}" />
+      <input type="checkbox" class="todo-checkbox" ${todo.done ? 'checked' : ''} />
       <span class="todo-text">${escapeHtml(todo.text)}</span>
-      <button class="todo-delete" data-idx="${idx}" title="Delete">✕</button>
+      <button class="todo-delete" title="Delete">✕</button>
     `;
     li.querySelector('.todo-checkbox').addEventListener('change', (e) => {
       todos[idx].done = e.target.checked;
@@ -430,19 +417,16 @@ function initSettings() {
     document.getElementById('settings-charity').value  = settings.charity  || '';
     document.getElementById('settings-search').value   = settings.search   || CONFIG.SEARCH_URL;
     document.getElementById('settings-location').value = settings.location || '';
-    // Reflect current time format on the toggle buttons
     updateSettingsFormatBtns(settings.timeFormat || '12hr');
   });
 
   close.addEventListener('click', () => panel.classList.add('hidden'));
 
-  // Time format toggle inside settings panel
   document.querySelectorAll('.settings-format-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.settings-format-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       settings.timeFormat = btn.dataset.format;
-      // Live-update the clock immediately
       initClock();
     });
   });
@@ -482,15 +466,35 @@ function updateFooterCharity() {
 }
 
 // ── BACKGROUND IMAGE ──────────────────────────────────────────────────────
+// Cached daily — fetches ONE image from Unsplash per day per user.
+// Every tab open that same day reuses the cached URL from chrome.storage.local.
+// Keeps us well within Unsplash's 50 req/hour free tier regardless of tab count.
 async function loadBackground() {
   if (CONFIG.UNSPLASH_KEY === 'YOUR_UNSPLASH_ACCESS_KEY') return;
-  try {
-    const res  = await fetch(`https://api.unsplash.com/photos/random?orientation=landscape&query=nature&client_id=${CONFIG.UNSPLASH_KEY}`);
-    const data = await res.json();
-    if (data.urls?.full) {
-      document.getElementById('bg').style.backgroundImage = `url(${data.urls.regular})`;
+
+  const today = todayKey();
+
+  chrome.storage.local.get(['bgCache'], async (data) => {
+    const cache = data.bgCache;
+
+    // Cached image from today — use it instantly, no API call needed
+    if (cache && cache.date === today && cache.url) {
+      document.getElementById('bg').style.backgroundImage = `url(${cache.url})`;
+      return;
     }
-  } catch (e) { /* graceful fallback to CSS gradient */ }
+
+    // Cache is stale or missing — fetch a fresh image
+    try {
+      const res     = await fetch(`https://api.unsplash.com/photos/random?orientation=landscape&query=nature,landscape&client_id=${CONFIG.UNSPLASH_KEY}`);
+      const imgData = await res.json();
+      if (imgData.urls?.regular) {
+        const url = imgData.urls.regular;
+        document.getElementById('bg').style.backgroundImage = `url(${url})`;
+        // Cache with today's date — reused for all tabs until midnight
+        chrome.storage.local.set({ bgCache: { date: today, url } });
+      }
+    } catch (e) { /* graceful fallback to CSS gradient */ }
+  });
 }
 
 // ── WEATHER ───────────────────────────────────────────────────────────────
@@ -521,23 +525,87 @@ function getWeatherEmoji(id) {
   return '🌡️';
 }
 
-// ── IMPACT METER ─────────────────────────────────────────────────────────
-// TODO Phase 3: Replace this with a live Supabase fetch
+// ── IMPACT METER (Live Supabase) ──────────────────────────────────────────
 async function loadImpactMeter() {
-  // Placeholder — will be replaced with Supabase edge function call
-  const mockTotal = 1247.50;
   const el = document.getElementById('impact-amount');
-  if (el) {
-    animateCounter(el, 0, mockTotal, 1200);
+  if (!el) return;
+
+  if (CONFIG.SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+    el.textContent = '$0.00';
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated&select=value`,
+      {
+        headers: {
+          'apikey':        CONFIG.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        }
+      }
+    );
+
+    if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
+
+    const data = await res.json();
+
+    if (data && data.length > 0) {
+      const total = parseFloat(data[0].value) || 0;
+      animateCounter(el, 0, total, 1200);
+    } else {
+      el.textContent = '$0.00';
+    }
+
+  } catch (e) {
+    console.warn('[GoodList] Impact meter fetch failed:', e.message);
+    el.textContent = '$0.00';
   }
 }
 
+// ── INCREMENT DONATION COUNTER ────────────────────────────────────────────
+async function incrementDonationCounter(amount = 0) {
+  if (CONFIG.SUPABASE_URL === 'YOUR_SUPABASE_URL' || amount <= 0) return;
+
+  try {
+    const res = await fetch(
+      `${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated&select=value`,
+      {
+        headers: {
+          'apikey':        CONFIG.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        }
+      }
+    );
+    const data     = await res.json();
+    const current  = parseFloat(data?.[0]?.value) || 0;
+    const newTotal = parseFloat((current + (amount * 0.5)).toFixed(2));
+
+    await fetch(
+      `${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated`,
+      {
+        method: 'PATCH',
+        headers: {
+          'apikey':        CONFIG.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+          'Content-Type':  'application/json',
+          'Prefer':        'return=minimal',
+        },
+        body: JSON.stringify({ value: newTotal }),
+      }
+    );
+  } catch (e) {
+    console.warn('[GoodList] Counter increment failed:', e.message);
+  }
+}
+
+// ── COUNTER ANIMATION ─────────────────────────────────────────────────────
 function animateCounter(el, from, to, duration) {
   const start = Date.now();
-  const tick = () => {
-    const elapsed = Date.now() - start;
+  const tick  = () => {
+    const elapsed  = Date.now() - start;
     const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const eased    = 1 - Math.pow(1 - progress, 3);
     el.textContent = '$' + (from + (to - from) * eased).toFixed(2);
     if (progress < 1) requestAnimationFrame(tick);
   };
@@ -550,5 +618,9 @@ function todayKey() {
 }
 
 function escapeHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
