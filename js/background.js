@@ -118,6 +118,27 @@ function scrapeProductData() {
 
   const ogTitle = document.querySelector('meta[property="og:title"]')?.content?.trim();
   const ogImage = document.querySelector('meta[property="og:image"]')?.content?.trim();
+
+  // Universal DOM image fallback — tries common product image selectors
+  // across major retailers before falling back to meta tags.
+  // This bypasses hotlink protection issues (Amazon, BestBuy, etc.)
+  // where og:image CDN URLs require a site Referer header to load.
+  const domImage = (
+    document.querySelector('#landingImage')?.src ||
+    document.querySelector('#imgBlkFront')?.src ||
+    document.querySelector('#main-image')?.src ||
+    document.querySelector('.a-dynamic-image')?.src ||
+    document.querySelector('.primary-image')?.src ||
+    document.querySelector('.shop-image__image')?.src ||
+    document.querySelector('[data-testid="primary-image"] img')?.src ||
+    document.querySelector('.product-image img')?.src ||
+    document.querySelector('[itemprop="image"]')?.src ||
+    document.querySelector('.main-image img')?.src ||
+    document.querySelector('img.product-photo')?.src ||
+    document.querySelector('img[class*="product"]')?.src ||
+    document.querySelector('img[class*="primary"]')?.src ||
+    null
+  );
   const ogPrice = document.querySelector('meta[property="product:price:amount"]')?.content?.trim()
                || document.querySelector('meta[property="og:price:amount"]')?.content?.trim();
 
@@ -153,7 +174,9 @@ function scrapeProductData() {
   }
 
   const title    = ldTitle  || ogTitle  || document.title || null;
-  const image    = ldImage  || ogImage  || null;
+  // Priority: structured data > DOM image > og meta tag
+  // DOM image is preferred over og:image for stores with hotlink protection
+  const image    = ldImage  || domImage || ogImage || null;
   const priceStr = ldPrice  || ogPrice  || domPrice || null;
   const priceRaw = parsePrice(priceStr);
   const price    = priceRaw ? '$' + priceRaw.toFixed(2) : (priceStr ? priceStr.substring(0, 20) : null);

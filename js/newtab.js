@@ -250,7 +250,7 @@ function updateStreak() {
 }
 
 function renderStreak() {
-  const el = document.getElementById('streak-display');
+  const el = document.getElementById('streak-badge');
   if (!el) return;
 
   if (streakData.count <= 0) {
@@ -352,7 +352,7 @@ function initSearch() {
 
 // ── DEAL OF THE DAY ───────────────────────────────────────────────────────
 function initDealOfTheDay() {
-  const section = document.getElementById('deal-section');
+  const section = document.getElementById('deal-panel');
 
   chrome.storage.local.get(['dealDismissed'], (data) => {
     if (data.dealDismissed === todayKey()) return;
@@ -360,14 +360,14 @@ function initDealOfTheDay() {
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     const deal      = DEALS[dayOfYear % DEALS.length];
 
-    document.getElementById('deal-title').textContent          = deal.title;
-    document.getElementById('deal-sale-price').textContent     = deal.salePrice;
-    document.getElementById('deal-original-price').textContent = deal.originalPrice;
-    document.getElementById('deal-discount').textContent       = deal.discount;
-    document.getElementById('deal-merchant').textContent       = `via ${deal.merchant}`;
+    document.getElementById('deal-panel-title').textContent    = deal.title;
+    document.getElementById('deal-panel-sale').textContent     = deal.salePrice;
+    document.getElementById('deal-panel-original').textContent = deal.originalPrice;
+    document.getElementById('deal-panel-discount').textContent = deal.discount;
+    document.getElementById('deal-panel-merchant').textContent = `via ${deal.merchant}`;
     document.getElementById('deal-image').src                  = deal.image;
     document.getElementById('deal-image').alt                  = deal.title;
-    document.getElementById('deal-btn').href                   = deal.url;
+    document.getElementById('deal-panel-btn').href             = deal.url;
 
     section.classList.remove('hidden');
 

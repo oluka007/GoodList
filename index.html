@@ -80,6 +80,18 @@
   <!-- ── MAIN LAYOUT ────────────────────────────────────────────────── -->
   <main id="app">
 
+    <aside id="tasks-sidebar">
+      <div class="panel-header">
+        <h3>Tasks <span id="todo-count" class="badge">0</span></h3>
+        <button id="todo-clear-btn" title="Clear completed">✓ Clear done</button>
+      </div>
+      <div id="todo-input-row">
+        <input type="text" id="todo-input" placeholder="Add a task..." maxlength="80" />
+        <button id="todo-add-btn">+</button>
+      </div>
+      <ul id="todo-list"></ul>
+    </aside>
+
     <!-- TOP BAR -->
     <header id="topbar">
       <div id="weather-widget">
@@ -105,6 +117,10 @@
 
       <div id="focus-container">
         <div id="focus-display" class="hidden">
+          <div id="streak-badge" class="hidden">
+            <span id="streak-icon">⚡</span>
+            <span id="streak-count"></span>
+          </div>
           <p id="focus-label">TODAY'S FOCUS</p>
           <p id="focus-text"></p>
           <div class="focus-actions">
@@ -117,12 +133,6 @@
           <button id="focus-set-btn">Set Focus</button>
         </div>
       </div>
-
-      <!-- STREAK DISPLAY — shown below focus when streak > 0 -->
-      <div id="streak-display" class="hidden">
-        <span id="streak-icon">🔥</span>
-        <span id="streak-count"></span>
-      </div>
     </section>
 
     <!-- SEARCH BAR -->
@@ -134,26 +144,7 @@
       <p id="search-disclosure">Searches support our charity partners</p>
     </section>
 
-    <!-- DEAL OF THE DAY -->
-    <section id="deal-section" class="hidden">
-      <div id="deal-card">
-        <div id="deal-badge">🔥 Deal of the Day</div>
-        <img id="deal-image" src="" alt="" />
-        <div id="deal-info">
-          <p id="deal-title"></p>
-          <div id="deal-prices">
-            <span id="deal-sale-price"></span>
-            <span id="deal-original-price"></span>
-            <span id="deal-discount"></span>
-          </div>
-          <p id="deal-merchant"></p>
-        </div>
-        <a id="deal-btn" href="#" target="_blank" rel="noopener">Shop Deal →</a>
-        <button id="deal-dismiss" title="Dismiss">✕</button>
-      </div>
-    </section>
-
-    <!-- BOTTOM PANEL: WISHLIST + TODO -->
+    <!-- BOTTOM PANEL: WISHLIST + DEAL -->
     <section id="bottom-panel">
 
       <!-- WISHLIST -->
@@ -170,17 +161,22 @@
         </div>
       </div>
 
-      <!-- TODO LIST -->
-      <div id="todo-panel">
-        <div class="panel-header">
-          <h3>Tasks <span id="todo-count" class="badge">0</span></h3>
-          <button id="todo-clear-btn" title="Clear completed">✓ Clear done</button>
+      <div id="deal-panel" class="hidden">
+        <div id="deal-panel-header">
+          <span>🔥 Deal of the Day</span>
+          <button id="deal-dismiss" title="Dismiss">✕</button>
         </div>
-        <div id="todo-input-row">
-          <input type="text" id="todo-input" placeholder="Add a task..." maxlength="80" />
-          <button id="todo-add-btn">+</button>
+        <img id="deal-image" src="" alt="" />
+        <div id="deal-panel-info">
+          <p id="deal-panel-title"></p>
+          <div id="deal-panel-prices">
+            <span id="deal-panel-sale"></span>
+            <span id="deal-panel-original"></span>
+            <span id="deal-panel-discount"></span>
+          </div>
+          <p id="deal-panel-merchant" style="font-size:11px; color: var(--text-muted);"></p>
         </div>
-        <ul id="todo-list"></ul>
+        <a id="deal-panel-btn" href="#" target="_blank" rel="noopener">Shop Deal →</a>
       </div>
 
     </section>

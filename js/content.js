@@ -5,6 +5,7 @@
 // ── SUPPORTED RETAILERS ───────────────────────────────────────────────────
 // Each entry defines how to detect a product page and where to find the price.
 const RETAILERS = {
+  // ── GENERAL RETAIL ────────────────────────────────────────────────
   'amazon.com': {
     isProductPage: () => !!document.getElementById('productTitle') || !!document.getElementById('title'),
     priceSelector: '.a-price .a-offscreen, #priceblock_ourprice, #priceblock_dealprice, #corePrice_feature_div .a-price .a-offscreen',
@@ -29,13 +30,221 @@ const RETAILERS = {
     isProductPage: () => !!document.querySelector('.sku-title'),
     priceSelector: '.priceView-customer-price span, [data-testid="customer-price"] span',
   },
+  'costco.com': {
+    isProductPage: () => window.location.pathname.includes('/product.'),
+    priceSelector: '.your-price .value, .costco-price',
+  },
+  'samsclub.com': {
+    isProductPage: () => window.location.pathname.includes('/p/'),
+    priceSelector: '[itemprop="price"], .sc-price',
+  },
+
+  // ── FASHION & APPAREL ─────────────────────────────────────────────
   'nike.com': {
     isProductPage: () => window.location.pathname.includes('/t/'),
     priceSelector: '[data-testid="currentPrice-container"], .product-price',
   },
+  'adidas.com': {
+    isProductPage: () => window.location.pathname.includes('/product/') || document.querySelector('.product-description'),
+    priceSelector: '[class*="current-price"], .gl-price',
+  },
+  'asos.com': {
+    isProductPage: () => window.location.pathname.includes('/prd/'),
+    priceSelector: '[data-testid="current-price"], .current-price',
+  },
+  'hm.com': {
+    isProductPage: () => window.location.pathname.includes('/productpage.'),
+    priceSelector: '.product-item-price, [class*="price"]',
+  },
+  'zara.com': {
+    isProductPage: () => !!document.querySelector('.product-detail-info'),
+    priceSelector: '.price__amount, [class*="price-current"]',
+  },
+  'shein.com': {
+    isProductPage: () => window.location.pathname.includes('-p-'),
+    priceSelector: '.product-intro__head-price .she-input-number, [class*="product-price"]',
+  },
+  'nordstrom.com': {
+    isProductPage: () => window.location.pathname.includes('/s/'),
+    priceSelector: '[data-element-id="price-regular"], .price',
+  },
+  'macys.com': {
+    isProductPage: () => !!document.querySelector('.product-title'),
+    priceSelector: '[data-auto="sale-price"], .pricing-price__sale-price',
+  },
+  'gap.com': {
+    isProductPage: () => window.location.pathname.includes('/browse/product.do'),
+    priceSelector: '.product-price, [class*="priceSection"]',
+  },
+  'oldnavy.com': {
+    isProductPage: () => window.location.pathname.includes('/browse/product.do'),
+    priceSelector: '.product-price, [class*="priceSection"]',
+  },
+  'uniqlo.com': {
+    isProductPage: () => window.location.pathname.includes('/products/'),
+    priceSelector: '[class*="ProductPrice"], .price-box',
+  },
+  'forever21.com': {
+    isProductPage: () => !!document.querySelector('.product-name'),
+    priceSelector: '.product-price, [class*="price"]',
+  },
+  'urbanoutfitters.com': {
+    isProductPage: () => window.location.pathname.includes('/shop/'),
+    priceSelector: '[class*="ProductPrice"], [data-testid="product-price"]',
+  },
+  'anthropologie.com': {
+    isProductPage: () => window.location.pathname.includes('/shop/'),
+    priceSelector: '[class*="ProductPrice"], [data-testid="product-price"]',
+  },
+  'lululemon.com': {
+    isProductPage: () => window.location.pathname.includes('/p/'),
+    priceSelector: '[data-testid="price"], .price',
+  },
+
+  // ── ELECTRONICS & TECH ────────────────────────────────────────────
   'newegg.com': {
     isProductPage: () => window.location.pathname.includes('/p/'),
     priceSelector: '.price-current strong, .price-was-data',
+  },
+  'bhphotovideo.com': {
+    isProductPage: () => !!document.querySelector('.itemTitle_3t2T3'),
+    priceSelector: '[data-selenium="pricingPrice"], .price_1DPoH',
+  },
+  'adorama.com': {
+    isProductPage: () => !!document.querySelector('.product-name h1'),
+    priceSelector: '.your-price, [itemprop="price"]',
+  },
+  'apple.com': {
+    isProductPage: () => window.location.pathname.includes('/shop/product/') || window.location.pathname.includes('/shop/buy-'),
+    priceSelector: '.rc-prices-fullPrice, [class*="price"]',
+  },
+  'samsung.com': {
+    isProductPage: () => !!document.querySelector('.product-title-container'),
+    priceSelector: '.price-container .price, [class*="PriceInfo"]',
+  },
+  'microsoft.com': {
+    isProductPage: () => window.location.pathname.includes('/store/') && !!document.querySelector('.price'),
+    priceSelector: '.price, [class*="ProductPrice"]',
+  },
+
+  // ── HOME & FURNITURE ──────────────────────────────────────────────
+  'ikea.com': {
+    isProductPage: () => !!document.querySelector('.pip-header-section'),
+    priceSelector: '.pip-price__integer, [class*="pip-price"]',
+  },
+  'homedepot.com': {
+    isProductPage: () => !!document.querySelector('.product-title'),
+    priceSelector: '[data-testid="pip-core-price"], #ajaxPrice',
+  },
+  'lowes.com': {
+    isProductPage: () => !!document.querySelector('[data-selector="product-display-name"]'),
+    priceSelector: '[data-testid="main-price"], .main-price',
+  },
+  'wayfair.com': {
+    isProductPage: () => !!document.querySelector('[data-hb-id="pip-buybox"]'),
+    priceSelector: '[data-testid="PriceBlock"] span, .BasePriceBlock',
+  },
+  'overstock.com': {
+    isProductPage: () => !!document.querySelector('.product-title-block'),
+    priceSelector: '.monetary-price, [itemprop="price"]',
+  },
+  'crateandbarrel.com': {
+    isProductPage: () => !!document.querySelector('.product-primary-name'),
+    priceSelector: '.product-price, [class*="Price"]',
+  },
+  'potterybarn.com': {
+    isProductPage: () => !!document.querySelector('.product-name'),
+    priceSelector: '.price-state, [class*="Price"]',
+  },
+  'williams-sonoma.com': {
+    isProductPage: () => !!document.querySelector('.product-name'),
+    priceSelector: '.price-state, [class*="Price"]',
+  },
+  'westelm.com': {
+    isProductPage: () => !!document.querySelector('.product-name'),
+    priceSelector: '.price-state, [class*="Price"]',
+  },
+
+  // ── BEAUTY & HEALTH ───────────────────────────────────────────────
+  'sephora.com': {
+    isProductPage: () => !!document.querySelector('[data-comp="ProductTitle"]'),
+    priceSelector: '[data-comp="Price"] span, .css-slm8o3',
+  },
+  'ulta.com': {
+    isProductPage: () => window.location.pathname.includes('/p/'),
+    priceSelector: '.ProductPricingWidget__price, [class*="ProductPrice"]',
+  },
+  'glossier.com': {
+    isProductPage: () => !!document.querySelector('.product-title'),
+    priceSelector: '[class*="price"], .product-price',
+  },
+
+  // ── GROCERIES ─────────────────────────────────────────────────────
+  'instacart.com': {
+    isProductPage: () => !!document.querySelector('[data-testid="item-page"]') || window.location.pathname.includes('/products/'),
+    priceSelector: '[data-testid="item-price"], .item-price',
+  },
+  'kroger.com': {
+    isProductPage: () => window.location.pathname.includes('/p/'),
+    priceSelector: '[data-testid="price"], .kds-Price',
+  },
+  'wholefoodsmarket.com': {
+    isProductPage: () => !!document.querySelector('.product-detail-container'),
+    priceSelector: '[class*="price"], .wfm-price',
+  },
+  'freshdirect.com': {
+    isProductPage: () => !!document.querySelector('.pdp-product-name'),
+    priceSelector: '.pdp-product-price, [class*="price"]',
+  },
+  'shipt.com': {
+    isProductPage: () => !!document.querySelector('[data-test="product-name"]'),
+    priceSelector: '[data-test="product-price"], [class*="price"]',
+  },
+
+  // ── PHARMACIES ────────────────────────────────────────────────────
+  'cvs.com': {
+    isProductPage: () => !!document.querySelector('.pdp-product-title'),
+    priceSelector: '.price--sale, [class*="productPrice"]',
+  },
+  'walgreens.com': {
+    isProductPage: () => window.location.pathname.includes('/store/catalog/product.jsp') || !!document.querySelector('.product-title'),
+    priceSelector: '.product-price, [class*="productPrice"]',
+  },
+  'riteaid.com': {
+    isProductPage: () => !!document.querySelector('.product-name'),
+    priceSelector: '.product-price, [itemprop="price"]',
+  },
+
+  // ── SPORTS & OUTDOORS ─────────────────────────────────────────────
+  'dickssportinggoods.com': {
+    isProductPage: () => !!document.querySelector('[class*="product-title"]'),
+    priceSelector: '[class*="product-price"], [itemprop="price"]',
+  },
+  'rei.com': {
+    isProductPage: () => window.location.pathname.includes('/product/'),
+    priceSelector: '[data-ui="sale-price"], .price-value',
+  },
+  'underarmour.com': {
+    isProductPage: () => !!document.querySelector('.product-title'),
+    priceSelector: '[class*="Price"], .price',
+  },
+
+  // ── MARKETPLACE & OTHER ───────────────────────────────────────────
+  'aliexpress.com': {
+    isProductPage: () => window.location.pathname.includes('/item/'),
+    priceSelector: '[class*="product-price-value"], .uniform-banner-box-price',
+  },
+  'wish.com': {
+    isProductPage: () => window.location.pathname.includes('/product/'),
+    priceSelector: '[class*="Price"], .price-block',
+  },
+  'chewy.com': {
+    isProductPage: () => !!document.querySelector('[class*="product-title"]'),
+    priceSelector: '[data-testid="price"], .ga-eec__price',
+  },
+  'petco.com': {
+    isProductPage: () => !!document.querySelector('.product-name'),
+    priceSelector: '[class*="product-price"], .regular-price',
   },
 };
 
@@ -75,9 +284,8 @@ function tryInjectButton(config) {
   btn.id = 'goodlist-btn';
   btn.innerHTML = `
     <div id="goodlist-btn-inner">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/>
       </svg>
       <span id="goodlist-btn-text">Add to GoodList</span>
     </div>
@@ -199,42 +407,37 @@ function injectStyles() {
   style.textContent = `
     #goodlist-btn {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
+      bottom: 20px;
+      right: 20px;
       z-index: 2147483647;
-      background: #1A6B3C;
+      background: rgba(26, 107, 60, 0.92);
       color: #ffffff;
-      border-radius: 50px;
-      padding: 0;
+      border-radius: 18px;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.20);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 500;
       border: none;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      opacity: 0.75;
       user-select: none;
     }
     #goodlist-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 24px rgba(0,0,0,0.35);
-      background: #2D9A5A;
-    }
-    #goodlist-btn:active {
-      transform: translateY(0);
+      opacity: 1;
+      transform: translateY(-1px);
     }
     #goodlist-btn-inner {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 12px 18px;
-      transition: opacity 0.15s ease;
+      gap: 5px;
+      padding: 6px 10px;
     }
     #goodlist-btn-confirm {
       align-items: center;
       justify-content: center;
-      padding: 12px 18px;
-      gap: 6px;
+      padding: 6px 10px;
+      gap: 4px;
     }
     #goodlist-btn svg {
       flex-shrink: 0;
