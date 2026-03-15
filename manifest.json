@@ -30,7 +30,11 @@
 
   "host_permissions": [
     "https://api.unsplash.com/*",
-    "https://api.openweathermap.org/*"
+    "https://api.openweathermap.org/*",
+    "https://nominatim.openstreetmap.org/*",
+    "https://*.supabase.co/*",
+    "https://api.viglink.com/*",
+    "https://go.skimresources.com/*"
   ],
 
   "action": {
