@@ -1,14 +1,3 @@
-// ── CONFIG ────────────────────────────────────────────────────────────────
-const CONFIG = {
-  UNSPLASH_KEY:     'YOUR_UNSPLASH_ACCESS_KEY',
-  WEATHER_KEY:      'YOUR_OPENWEATHERMAP_KEY',
-  DEFAULT_LOCATION: 'New York,US',
-  SEARCH_URL:       'https://www.google.com/search?q=',
-
-  SUPABASE_URL:      'YOUR_SUPABASE_URL',
-  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
-};
-
 // ── DEALS DATA ────────────────────────────────────────────────────────────
 const DEALS = [
   { title: 'Anker 65W USB-C Charger — charge 3 devices at once', salePrice: '$25.99', originalPrice: '$45.99', discount: '43% OFF', merchant: 'Amazon', image: 'https://m.media-amazon.com/images/I/61TTj9OXEHL._AC_SL1500_.jpg', url: 'https://www.amazon.com/s?k=anker+65w+usb-c+charger' },
@@ -26,6 +15,7 @@ let wishlist  = [];
 let todos     = [];
 let focusData = {};
 let streakData = { count: 0, lastDate: '' };
+let clockInterval = null; // Bug 2 fix: keep a single live clock interval when reinitializing
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -215,7 +205,8 @@ function initClock() {
       now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   };
   tick();
-  setInterval(tick, 1000);
+  if (clockInterval) clearInterval(clockInterval); // Bug 2 fix: clear prior interval before starting a new one
+  clockInterval = setInterval(tick, 1000);
 }
 
 // ── STREAK ────────────────────────────────────────────────────────────────
@@ -437,7 +428,11 @@ function renderWishlist() {
 
     card.addEventListener('click', (e) => {
       if (e.target.classList.contains('card-remove')) return;
-      if (item.affiliateUrl || item.url) window.open(item.affiliateUrl || item.url, '_blank');
+      if (item.affiliateUrl || item.url) {
+        window.open(item.affiliateUrl || item.url, '_blank');
+        // Bug 5 fix: count wishlist affiliate clicks as the donation-triggering event
+        incrementDonationCounter(0.10);
+      }
     });
 
     card.querySelector('.card-remove').addEventListener('click', (e) => {
@@ -672,7 +667,12 @@ function animateCounter(el, from, to, duration) {
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
 function todayKey() {
-  return new Date().toISOString().split('T')[0];
+  // Bug 3 fix: derive the date from local time instead of UTC to avoid early rollover
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm   = String(d.getMonth() + 1).padStart(2, '0');
+  const dd   = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function escapeHtml(str) {

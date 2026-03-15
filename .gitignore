@@ -1,9 +1,7 @@
+# API keys — never commit
+js/config.js
+
+# System files
 .DS_Store
 Thumbs.db
-
 *.bak
-*.zip
-*.7z
-
-.vscode/
-.idea/
