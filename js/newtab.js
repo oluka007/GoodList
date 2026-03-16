@@ -138,6 +138,7 @@ function initOnboarding() {
     renderStreak();
     updateFooterCharity();
     loadWeather();
+    loadImpactMeter();
   });
 
   document.getElementById('onboarding-focus-input').addEventListener('keydown', (e) => {
@@ -534,6 +535,7 @@ function initSettings() {
     saveSettings();
     updateFooterCharity();
     loadWeather();
+    loadImpactMeter();
     panel.classList.add('hidden');
   });
 
@@ -614,8 +616,13 @@ function getWeatherEmoji(id) {
 // ── IMPACT METER (Live Supabase) ──────────────────────────────────────────
 async function loadImpactMeter() {
   const el = document.getElementById('impact-amount');
+  const charityEl = document.getElementById('impact-charity');
   if (!el) return;
-  if (CONFIG.SUPABASE_URL === 'YOUR_SUPABASE_URL') { el.textContent = '$0.00'; return; }
+  if (CONFIG.SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+    el.textContent = '$0.00';
+    if (charityEl) charityEl.textContent = settings.charity || 'your charity';
+    return;
+  }
   try {
     const res = await fetch(
       `${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated&select=value`,
@@ -625,12 +632,25 @@ async function loadImpactMeter() {
     const data = await res.json();
     if (data && data.length > 0) {
       animateCounter(el, 0, parseFloat(data[0].value) || 0, 1200);
+
+      // Also fetch user's specific charity total
+      const charityRes = await fetch(
+        `${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.${encodeURIComponent(settings.charity || 'total_donated')}&select=value`,
+        { headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` } }
+      );
+      const charityData = await charityRes.json();
+      const charityName = settings.charity || 'your charity';
+      const charityTotal = parseFloat(charityData?.[0]?.value) || 0;
+
+      if (charityEl) charityEl.textContent = `${charityName}: $${charityTotal.toFixed(2)}`;
     } else {
       el.textContent = '$0.00';
+      if (charityEl) charityEl.textContent = settings.charity || 'your charity';
     }
   } catch (e) {
     console.warn('[GoodList] Impact meter fetch failed:', e.message);
     el.textContent = '$0.00';
+    if (charityEl) charityEl.textContent = settings.charity || 'your charity';
   }
 }
 
@@ -638,17 +658,19 @@ async function loadImpactMeter() {
 async function incrementDonationCounter(amount = 0) {
   if (CONFIG.SUPABASE_URL === 'YOUR_SUPABASE_URL' || amount <= 0) return;
   try {
-    const res     = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated&select=value`, { headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}` } });
-    const data    = await res.json();
-    const current = parseFloat(data?.[0]?.value) || 0;
-    const newTotal = parseFloat((current + (amount * 0.5)).toFixed(2));
-    await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/impact?key=eq.total_donated`, {
-      method: 'PATCH',
-      headers: { 'apikey': CONFIG.SUPABASE_ANON_KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ value: newTotal }),
+    await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/process-donation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        charity: settings.charity || 'total_donated',
+        amount,
+      }),
     });
   } catch (e) {
-    console.warn('[GoodList] Counter increment failed:', e.message);
+    console.warn('[GoodList] Donation counter failed:', e.message);
   }
 }
 

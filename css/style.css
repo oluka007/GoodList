@@ -78,6 +78,27 @@ html, body {
   z-index: 10;
 }
 
+#right-rail {
+  position: fixed;
+  right: 24px;
+  top: 110px;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 10;
+}
+
+.right-rail-card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
 /* ── TOP BAR ────────────────────────────────────────────────────────── */
 #topbar {
   grid-area: topbar;
@@ -95,16 +116,44 @@ html, body {
 #weather-temp { font-weight: 600; color: var(--text-main); }
 
 #impact-meter {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  padding: 5px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 156px;
+}
+.impact-kicker {
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+}
+.impact-total-block,
+.impact-charity-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.impact-label {
+  color: var(--text-muted);
   font-size: 12px;
 }
-.impact-label { color: var(--text-muted); }
-#impact-amount { font-weight: 700; color: var(--gold); font-size: 13px; }
-#impact-charity { font-weight: 600; color: var(--text-main); }
+#impact-amount {
+  font-weight: 700;
+  color: var(--gold);
+  font-size: 30px;
+  line-height: 1;
+}
+#impact-charity {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.impact-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.10);
+}
 
 #settings-btn {
   background: none; border: none; cursor: pointer;
@@ -710,6 +759,22 @@ html, body {
   border-color: var(--green);
   color: #fff; font-weight: 600;
 }
+
+@media (max-width: 1400px) {
+  #right-rail {
+    width: 230px;
+    top: 96px;
+  }
+
+  .right-rail-card {
+    padding: 14px;
+  }
+
+  #impact-amount {
+    font-size: 26px;
+  }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
