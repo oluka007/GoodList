@@ -590,16 +590,40 @@ async function loadWeather() {
   const loc = settings.location || CONFIG.DEFAULT_LOCATION;
   if (CONFIG.WEATHER_KEY === 'YOUR_OPENWEATHERMAP_KEY') return;
   try {
-    const res  = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(loc)}&appid=${CONFIG.WEATHER_KEY}&units=imperial`);
+    const weatherQuery = normalizeWeatherLocation(loc);
+    const res  = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(weatherQuery)}&appid=${CONFIG.WEATHER_KEY}&units=imperial`);
+    if (!res.ok) throw new Error(`OpenWeather error: ${res.status}`);
     const data = await res.json();
     if (data.main) {
       document.getElementById('weather-temp').textContent = `${Math.round(data.main.temp)}°F`;
       document.getElementById('weather-desc').textContent = data.weather[0].description;
       document.getElementById('weather-icon').textContent = getWeatherEmoji(data.weather[0].id);
+    } else {
+      throw new Error('OpenWeather response missing weather data');
     }
   } catch (e) {
+    console.warn('[GoodList] Weather fetch failed:', e.message);
+    document.getElementById('weather-temp').textContent = '--°';
     document.getElementById('weather-desc').textContent = 'Weather unavailable';
+    document.getElementById('weather-icon').textContent = '🌡️';
   }
+}
+
+function normalizeWeatherLocation(location) {
+  const raw = (location || '').trim();
+  if (!raw) return CONFIG.DEFAULT_LOCATION;
+
+  const compact = raw.replace(/\s*,\s*/g, ',');
+  if (compact.includes(',')) return compact;
+
+  const parts = raw.split(/\s+/);
+  const state = parts[parts.length - 1];
+  if (parts.length >= 2 && /^[A-Za-z]{2}$/.test(state)) {
+    const city = parts.slice(0, -1).join(' ');
+    return `${city},${state.toUpperCase()},US`;
+  }
+
+  return raw;
 }
 
 function getWeatherEmoji(id) {
